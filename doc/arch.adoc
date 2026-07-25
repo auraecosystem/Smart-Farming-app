@@ -1638,3 +1638,292 @@ Phase 7: Marketplace and settlement
 Phase 8: Network-scale digital economy
 
 That gives you a genuine path from farming productivity to digital economic value, without pretending that arbitrary token minting is the same thing as wealth creation.
+
+
+Next is Phase 1A: build the KAVP core module and connect it to your Smart Farming application.
+
+The first version should be a clean Python package that turns your existing crop data into a productive-value pipeline:
+
+Smart-Farming-app
+│
+├── Existing AI/Farming Features
+│
+└── kavp/
+    ├── models/
+    │   ├── crop.py
+    │   ├── farm.py
+    │   └── production.py
+    │
+    ├── registry/
+    │   ├── crop_registry.py
+    │   └── farm_registry.py
+    │
+    ├── popa/
+    │   └── verifier.py
+    │
+    ├── value/
+    │   └── valuation.py
+    │
+    └── assets/
+        └── arc.py
+
+The data flow becomes:
+
+crop()
+   ↓
+Crop Registry
+   ↓
+Farm Registry
+   ↓
+Production Record
+   ↓
+PoPA
+   ↓
+Verified Production
+   ↓
+Value Engine
+   ↓
+ARC
+
+The core model should be:
+
+from dataclasses import dataclass
+from decimal import Decimal
+from enum import Enum
+from uuid import uuid4
+class ProductionStatus(str, Enum):
+    ACTIVE = "active"
+    PENDING_VERIFICATION = "pending_verification"
+    VERIFIED = "verified"
+    REJECTED = "rejected"
+@dataclass
+class Crop:
+    crop_id: str
+    name: str
+    category: str
+    season: str
+@dataclass
+class Farm:
+    farm_id: str
+    owner_id: str
+    name: str
+    location: str
+    area_hectares: Decimal
+@dataclass
+class Production:
+    production_id: str
+    farm_id: str
+    crop_id: str
+    predicted_yield_kg: Decimal
+    actual_yield_kg: Decimal | None = None
+    quality_grade: str | None = None
+    status: ProductionStatus = ProductionStatus.ACTIVE
+@dataclass
+class ARC:
+    receipt_id: str
+    production_id: str
+    farm_id: str
+    crop_id: str
+    verified_quantity_kg: Decimal
+    reference_value: Decimal
+    status: str = "active"
+
+Then the system needs a central engine:
+
+class KAVP:
+    def __init__(self):
+        self.crops = {}
+        self.farms = {}
+        self.productions = {}
+        self.arcs = {}
+    def register_crop(self, crop):
+        self.crops[crop.crop_id] = crop
+    def register_farm(self, farm):
+        self.farms[farm.farm_id] = farm
+    def create_production(
+        self,
+        farm_id,
+        crop_id,
+        predicted_yield_kg
+    ):
+        if farm_id not in self.farms:
+            raise ValueError("Farm not found")
+        if crop_id not in self.crops:
+            raise ValueError("Crop not found")
+        production = Production(
+            production_id=f"PROD-{uuid4().hex[:12].upper()}",
+            farm_id=farm_id,
+            crop_id=crop_id,
+            predicted_yield_kg=Decimal(
+                str(predicted_yield_kg)
+            )
+        )
+        self.productions[
+            production.production_id
+        ] = production
+        return production
+
+Then harvest is recorded:
+
+def record_harvest(
+    self,
+    production_id,
+    actual_yield_kg,
+    quality_grade
+):
+    production = self.productions.get(
+        production_id
+    )
+    if not production:
+        raise ValueError(
+            "Production not found"
+        )
+    production.actual_yield_kg = Decimal(
+        str(actual_yield_kg)
+    )
+    production.quality_grade = quality_grade
+    production.status = (
+        ProductionStatus.PENDING_VERIFICATION
+    )
+    return production
+
+Then PoPA verifies it:
+
+def verify_production(self, production_id):
+    production = self.productions.get(
+        production_id
+    )
+    if not production:
+        raise ValueError(
+            "Production not found"
+        )
+    if not production.actual_yield_kg:
+        raise ValueError(
+            "Harvest has not been recorded"
+        )
+    # Initial MVP verification rule.
+    # Later this becomes a multi-source
+    # verification engine.
+    maximum_expected = (
+        production.predicted_yield_kg
+        * Decimal("1.5")
+    )
+    if (
+        production.actual_yield_kg
+        > maximum_expected
+    ):
+        production.status = (
+            ProductionStatus.REJECTED
+        )
+        return production
+    production.status = (
+        ProductionStatus.VERIFIED
+    )
+    return production
+
+Then the Value Engine calculates a reference value:
+
+def issue_arc(
+    self,
+    production_id,
+    market_price_per_kg
+):
+    production = self.productions.get(
+        production_id
+    )
+    if not production:
+        raise ValueError(
+            "Production not found"
+        )
+    if (
+        production.status
+        != ProductionStatus.VERIFIED
+    ):
+        raise ValueError(
+            "Production is not verified"
+        )
+    reference_value = (
+        production.actual_yield_kg
+        * Decimal(str(market_price_per_kg))
+    )
+    arc = ARC(
+        receipt_id=(
+            f"ARC-{uuid4().hex[:12].upper()}"
+        ),
+        production_id=production.production_id,
+        farm_id=production.farm_id,
+        crop_id=production.crop_id,
+        verified_quantity_kg=(
+            production.actual_yield_kg
+        ),
+        reference_value=reference_value
+    )
+    self.arcs[
+        arc.receipt_id
+    ] = arc
+    return arc
+
+The first complete test would be:
+
+kavp = KAVP()
+kavp.register_crop(
+    Crop(
+        crop_id="maize",
+        name="Maize",
+        category="cereal",
+        season="kharif"
+    )
+)
+kavp.register_farm(
+    Farm(
+        farm_id="FARM-001",
+        owner_id="FARMER-001",
+        name="Kubu Smart Farm",
+        location="Nigeria",
+        area_hectares=Decimal("2.5")
+    )
+)
+production = kavp.create_production(
+    farm_id="FARM-001",
+    crop_id="maize",
+    predicted_yield_kg=4500
+)
+kavp.record_harvest(
+    production_id=production.production_id,
+    actual_yield_kg=4300,
+    quality_grade="A"
+)
+kavp.verify_production(
+    production.production_id
+)
+arc = kavp.issue_arc(
+    production.production_id,
+    market_price_per_kg=500
+)
+print(arc)
+
+The resulting pipeline is:
+
+FARM-001
+   │
+   ▼
+MAIZE
+   │
+   ▼
+4,500 kg predicted
+   │
+   ▼
+4,300 kg harvested
+   │
+   ▼
+PoPA VERIFIED
+   │
+   ▼
+ARC CREATED
+   │
+   ▼
+KIBS LEDGER ← NEXT
+
+> This is the point where we can move from the current Smart Farming application into the KIBS economic infrastructure.
+
+> The next phase is Phase 1B: KIBS Ledger Integration. We will define the wallet, immutable transaction record, ARC ownership, double-spend prevention, and the interface through which verified agricultural production is recorded on the KIBS ledger.

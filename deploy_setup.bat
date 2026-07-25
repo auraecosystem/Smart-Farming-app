@@ -36,7 +36,7 @@ echo  NEXT STEPS:
 echo ================================================
 echo.
 echo 1. Create a GitHub repository: https://github.com/new
-echo 2. Run: git remote add origin https://github.com/yourusername/smart-farming-app.git
+echo 2. Run: git remote add origin https://github.com/auraecosystem/smart-farming-app.git
 echo 3. Run: git push -u origin main
 echo 4. Deploy backend to Railway: https://railway.app
 echo 5. Deploy frontend to Vercel: https://vercel.com

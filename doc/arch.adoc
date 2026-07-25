@@ -2150,3 +2150,246 @@ The next major phase is Phase 2 — AGC issuance. That is where we define the ac
 * KIBS wallet integration
 
 > That is the layer that answers your original goal: how the Smart Farm itself can become the productive source for generating digital economic credits, rather than requiring conventional hash-rate mining hardware.
+
+# AGC
+
+Then we move to Phase 2 — AGC Productive Credit Engine.
+
+This is the layer that turns your verified agricultural activity into a controlled digital credit system.
+
+The key model is:
+
+REAL FARM PRODUCTIVITY
+        ↓
+VERIFIED PRODUCTION
+        ↓
+ARC — Agricultural Receipt
+        ↓
+AGC ELIGIBILITY
+        ↓
+ISSUANCE RULES
+        ↓
+AGC CREDIT
+        ↓
+KIBS WALLET
+        ↓
+AGRICULTURAL ECONOMY
+
+The important rule is:
+
+ARC proves the underlying production. AGC is the ecosystem credit derived from that verified activity.
+
+Do not make AGC a direct 1:1 replacement for fiat currency. Instead, define a protocol formula.
+
+For example:
+
+AGC Issuance
+=
+Verified Production
+×
+Productivity Factor
+×
+Quality Factor
+×
+Verification Confidence
+×
+Protocol Rate
+
+A simplified implementation could be:
+```py
+from dataclasses import dataclass
+from decimal import Decimal
+@dataclass
+class AGCIssuance:
+    issuance_id: str
+    farmer_id: str
+    arc_id: str
+    production_quantity_kg: Decimal
+    agc_amount: Decimal
+    status: str = "issued"
+class AGCEngine:
+    def calculate(
+        self,
+        verified_quantity_kg: Decimal,
+        productivity_factor: Decimal,
+        quality_factor: Decimal,
+        verification_factor: Decimal,
+        protocol_rate: Decimal
+    ) -> Decimal:
+        return (
+            verified_quantity_kg
+            * productivity_factor
+            * quality_factor
+            * verification_factor
+            * protocol_rate
+        )
+```
+For example, the protocol could conceptually calculate:
+
+Verified production
+      ↓
+4,300 kg maize
+      ↓
+Quality factor
+      ↓
+Verification factor
+      ↓
+Protocol rate
+      ↓
+AGC allocation
+
+The exact rate should be determined by your economic model—not arbitrarily chosen.
+
+The anti-inflation mechanism
+
+The system must prevent unlimited AGC issuance.
+
+I recommend:
+
+AGC Supply
+   │
+   ├── Issued
+   ├── Circulating
+   ├── Locked
+   ├── Burned
+   └── Reserved
+
+A production event should also be single-use for issuance:
+
+ARC-001
+    │
+    ├── AGC Issuance: NOT CLAIMED
+    │
+    ▼
+AGC Issued
+    │
+    └── AGC Issuance: CLAIMED
+
+If someone tries to use the same ARC again:
+
+ARC-001
+     ↓
+Already used
+     ↓
+REJECT
+
+This prevents double counting.
+
+The complete economic model
+
+             FARM
+              │
+              ▼
+        REAL PRODUCTION
+              │
+              ▼
+          VERIFICATION
+              │
+              ▼
+             ARC
+              │
+       ┌──────┴──────┐
+       │             │
+  Production     Reference
+   Record          Value
+       │             │
+       └──────┬──────┘
+              │
+              ▼
+         AGC ENGINE
+              │
+       ┌──────┴──────┐
+       │             │
+     ISSUE         RESERVE
+       │             │
+       ▼             ▼
+   FARMER WALLET   PROTOCOL
+       │
+       ▼
+   AGRICULTURAL
+    ECONOMY
+
+AGC could then have utility inside the ecosystem:
+
+AGC
+│
+├── Pay platform fees
+├── Access premium AI services
+├── Purchase agricultural services
+├── Receive farmer rewards
+├── Participate in marketplace activity
+├── Support agricultural financing
+└── Other permitted ecosystem utilities
+
+This creates the productive loop:
+
+Farmer produces
+      ↓
+Production verified
+      ↓
+ARC issued
+      ↓
+AGC becomes eligible
+      ↓
+AGC enters wallet
+      ↓
+AGC used within ecosystem
+      ↓
+Economic activity occurs
+      ↓
+More productive activity
+
+The system should also track a Productivity Reputation Score:
+
+Farmer
+  │
+  ├── Production History
+  ├── Verification History
+  ├── Quality History
+  ├── Delivery History
+  └── Marketplace History
+          │
+          ▼
+   Reputation Score
+
+A farmer with consistently verified production could receive better access to ecosystem services, while suspicious or fraudulent activity could reduce reputation and temporarily restrict issuance.
+
+The overall architecture is now:
+
+SMART FARMING APP
+        │
+        ▼
+KAVP
+        │
+        ├── Crop Registry
+        ├── Farm Registry
+        ├── Production Registry
+        │
+        ▼
+PoPA
+        │
+        ▼
+Verified Production
+        │
+        ├───────────────┐
+        ▼               ▼
+      ARC          Value Engine
+        │               │
+        └───────┬───────┘
+                ▼
+           AGC ENGINE
+                │
+                ▼
+           KIBS LEDGER
+                │
+        ┌───────┴───────┐
+        ▼               ▼
+      WALLET        MARKETPLACE
+        │               │
+        └───────┬───────┘
+                ▼
+          REAL ECONOMY
+
+This gives you a coherent productive-value protocol: the Smart Farming app generates the underlying real-world activity, PoPA establishes evidence, ARC represents verified production, AGC provides controlled ecosystem credits, and KIBS manages the digital ownership and transaction layer.
+
+> The next phase should be Phase 3 — connect this architecture to the actual Smart-Farming-app repository, replacing the original static crop() and msp() functions with the new Crop Registry and Market Oracle, then connecting the application’s existing AI/yield prediction functionality directly into PoPA. That is where we start turning the design into the actual working system.

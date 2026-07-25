@@ -35,7 +35,7 @@ Your frontend is already configured with:
 ## 🚀 Step 2: Push to GitHub
 
 1. **Initialize Git repository** (if not already done):
-   ```bash
+   ```.bash
    git init
    git add .
    git commit -m "Initial commit - Smart Farming App"
@@ -47,8 +47,8 @@ Your frontend is already configured with:
    - Make it public for free deployment
 
 3. **Push your code**:
-   ```bash
-   git remote add origin https://github.com/yourusername/smart-farming-app.git
+   ```.bash
+   git remote add origin https://github.com/auraecosystem/smart-farming-app.git
    git branch -M main
    git push -u origin main
    ```
@@ -60,16 +60,15 @@ Your frontend is already configured with:
 3. **Connect your GitHub account** and select your repository
 4. **Choose the backend folder** (Railway will auto-detect the Dockerfile)
 5. **Set Environment Variables**:
-   ```
+   ```txt
    SECRET_KEY=your-super-secret-key-here
    FLASK_ENV=production
    FLASK_DEBUG=false
    TRAIN_ON_STARTUP=false
-   WEATHER_API_KEY=ff049be539ac8642b805155154206e4c
    ```
 
 6. **Deploy**: Railway will automatically build and deploy your Flask API
-7. **Get your backend URL**: Copy the generated URL (e.g., `https://yourapp.railway.app`)
+7. **Get your backend URL**: Copy the generated URL (e.g., `https://my-app.railway.app`)
 
 ### Optional: Add Database (PostgreSQL)
 1. In Railway dashboard, click **"Add Service"** → **"Database"** → **"PostgreSQL"**
@@ -87,20 +86,20 @@ Your frontend is already configured with:
    - Output Directory: `build`
 
 5. **Set Environment Variables**:
-   ```
+   ```console
    REACT_APP_BACKEND_URL=https://your-railway-backend-url.railway.app
    ```
 
 6. **Deploy**: Vercel will build and deploy your React app
-7. **Get your frontend URL**: Copy the generated URL (e.g., `https://yourapp.vercel.app`)
+7. **Get your frontend URL**: Copy the generated URL (e.g., `https://my-app.vercel.app`)
 
 ## 🔧 Step 5: Update CORS Configuration
 
 After deployment, update your backend CORS configuration:
 
 1. In Railway dashboard, add this environment variable:
-   ```
-   FRONTEND_URL=https://yourapp.vercel.app
+   ```_<
+   FRONTEND_URL=https://my-app.vercel.app
    ```
 
 2. Your backend is already configured to read this and add it to allowed origins.

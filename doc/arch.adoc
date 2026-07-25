@@ -1085,7 +1085,7 @@ KBU Ecosystem
 6. Proposed repository architecture
 
 I would evolve your Smart Farming repository toward:
-
+```make.bash
 Smart-Farming-app/
 │
 ├── app/
@@ -1144,7 +1144,7 @@ Smart-Farming-app/
     ├── economics.md
     ├── verification.md
     └── security.md
-
+```
 7. The complete economic cycle
 
 The finished system would work like this:
@@ -1258,14 +1258,14 @@ That is the critical foundation.
 2. The Smart Farming application
 
 Your existing app remains responsible for:
-
+```console
 Crop recommendation
 Yield prediction
 Weather intelligence
 Market forecasting
 Farmer interaction
 Agricultural AI
-
+```
 These components feed the protocol:
 ```jq
 activity = {
@@ -1314,7 +1314,7 @@ PoPA — Proof of Productive Activity
 4. Value Engine
 
 Once production is verified:
-
+```py
 verified_output = {
     "crop": "maize",
     "quantity_kg": 4500,
@@ -1322,7 +1322,7 @@ verified_output = {
     "location": "verified",
     "status": "verified"
 }
-
+```
 > The Value Engine determines the economic reference value.
 
 Conceptually:
@@ -1387,7 +1387,7 @@ KBU ECOSYSTEM
 
 I would evolve the repository toward:
 
-> ?Smart-Farming-app/
+> .q?Smart-Farming-app/
 │
 ├── app/
 │   ├── farmer/
@@ -1479,7 +1479,7 @@ For example, someone cannot simply create 1,000 fake farms and generate unlimite
 8. The actual system lifecycle
 
 The finished platform becomes:
-
+```pq
                  FARMER
                     │
                     ▼
@@ -1525,6 +1525,7 @@ The finished platform becomes:
              └──────┬──────┘
                     ▼
               REAL ECONOMY
+```
 
 > My recommendation for the next concrete build is to implement Phase 1 first:
 
@@ -1686,7 +1687,7 @@ Value Engine
 ARC
 
 The core model should be:
-
+```py
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum
@@ -1727,9 +1728,9 @@ class ARC:
     verified_quantity_kg: Decimal
     reference_value: Decimal
     status: str = "active"
-
+```
 Then the system needs a central engine:
-
+```py
 class KAVP:
     def __init__(self):
         self.crops = {}
@@ -1762,9 +1763,9 @@ class KAVP:
             production.production_id
         ] = production
         return production
-
+```
 Then harvest is recorded:
-
+```py
 def record_harvest(
     self,
     production_id,
@@ -1786,9 +1787,9 @@ def record_harvest(
         ProductionStatus.PENDING_VERIFICATION
     )
     return production
-
+```
 Then PoPA verifies it:
-
+```python
 def verify_production(self, production_id):
     production = self.productions.get(
         production_id
@@ -1862,9 +1863,9 @@ def issue_arc(
         arc.receipt_id
     ] = arc
     return arc
-
+```
 The first complete test would be:
-
+```python
 kavp = KAVP()
 kavp.register_crop(
     Crop(
@@ -1901,7 +1902,7 @@ arc = kavp.issue_arc(
     market_price_per_kg=500
 )
 print(arc)
-
+```
 The resulting pipeline is:
 
 FARM-001
@@ -1927,3 +1928,225 @@ KIBS LEDGER ← NEXT
 > This is the point where we can move from the current Smart Farming application into the KIBS economic infrastructure.
 
 > The next phase is Phase 1B: KIBS Ledger Integration. We will define the wallet, immutable transaction record, ARC ownership, double-spend prevention, and the interface through which verified agricultural production is recorded on the KIBS ledger.
+
+
+Next: Phase 1B — KIBS Ledger Integration.
+
+Now we connect the verified agricultural output to a ledger. The important design principle is that the ledger records ownership and provenance; it does not magically create money.
+
+The architecture becomes:
+
+SMART FARM
+    │
+    ▼
+PRODUCTION
+    │
+    ▼
+PoPA VERIFICATION
+    │
+    ▼
+VALUE ENGINE
+    │
+    ▼
+ARC CREATED
+    │
+    ▼
+KIBS LEDGER
+    │
+    ├── Farmer Wallet
+    ├── ARC Ownership
+    ├── Transaction History
+    └── Provenance
+
+1. KIBS wallet
+
+Every farmer gets a ledger identity:
+```py
+from dataclasses import dataclass, field
+from decimal import Decimal
+from datetime import datetime, timezone
+from uuid import uuid4
+@dataclass
+class Wallet:
+    wallet_id: str
+    owner_id: str
+    arc_balance: Decimal = Decimal("0")
+    agc_balance: Decimal = Decimal("0")
+```
+2. Ledger transaction
+
+Every asset movement creates a transaction:
+```py
+@dataclass
+class LedgerTransaction:
+    transaction_id: str
+    transaction_type: str
+    from_wallet: str | None
+    to_wallet: str | None
+    asset_id: str
+    quantity: Decimal
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+```
+For example:
+```
+TX-001
+Type: ARC_ISSUANCE
+From: PROTOCOL
+To: FARMER-001
+Asset: ARC-001
+Quantity: 4,300 kg
+```
+3. Ledger
+```python
+class KIBSLedger:
+    def __init__(self):
+        self.wallets = {}
+        self.transactions = {}
+        self.asset_owners = {}
+    def create_wallet(self, owner_id):
+        wallet = Wallet(
+            wallet_id=f"WALLET-{uuid4().hex[:12].upper()}",
+            owner_id=owner_id
+        )
+        self.wallets[wallet.wallet_id] = wallet
+        return wallet
+    def record_arc_issuance(
+        self,
+        wallet_id,
+        arc_id,
+        quantity
+    ):
+        if wallet_id not in self.wallets:
+            raise ValueError("Wallet not found")
+        if arc_id in self.asset_owners:
+            raise ValueError(
+                "ARC has already been issued"
+            )
+        transaction = LedgerTransaction(
+            transaction_id=(
+                f"TX-{uuid4().hex[:12].upper()}"
+            ),
+            transaction_type="ARC_ISSUANCE",
+            from_wallet=None,
+            to_wallet=wallet_id,
+            asset_id=arc_id,
+            quantity=Decimal(str(quantity))
+        )
+        self.transactions[
+            transaction.transaction_id
+        ] = transaction
+        self.asset_owners[
+            arc_id
+        ] = wallet_id
+        return transaction
+
+Now the complete flow becomes:
+
+ledger = KIBSLedger()
+wallet = ledger.create_wallet(
+    owner_id="FARMER-001"
+)
+transaction = ledger.record_arc_issuance(
+    wallet_id=wallet.wallet_id,
+    arc_id=arc.receipt_id,
+    quantity=arc.verified_quantity_kg
+)
+```
+The result is:
+
+FARMER-001
+     │
+     ▼
+WALLET-001
+     │
+     ▼
+ARC-001
+     │
+     ├── Crop: Maize
+     ├── Verified quantity: 4,300 kg
+     ├── Reference value: ₦2,150,000
+     ├── Origin: FARM-001
+     └── Status: Active
+
+The important distinction is:
+
+ARC quantity ≠ currency balance
+
+An ARC represents verified agricultural production. Its reference value may be ₦2,150,000, but that does not mean the farmer automatically receives ₦2,150,000 in cash or cryptocurrency.
+
+The economic pipeline should be:
+
+4,300 kg verified maize
+        │
+        ▼
+ARC-001
+        │
+        ▼
+Reference value: ₦2,150,000
+        │
+        ├───────────────┐
+        ▼               ▼
+Marketplace          AGC Eligibility
+        │               │
+        ▼               ▼
+Actual Sale         Protocol Rules
+        │               │
+        ▼               ▼
+Real Revenue       AGC Allocation
+
+This is much safer and economically sounder than directly minting unrestricted currency from farm data.
+
+4. The complete KAVP + KIBS architecture
+
+                    SMART FARMING
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+      CROPS            FARMS          AI MODELS
+        │                │                │
+        └────────────────┼────────────────┘
+                         │
+                   PRODUCTION
+                         │
+                         ▼
+                       PoPA
+                         │
+                 ┌───────┴───────┐
+                 │               │
+             VERIFIED         REJECTED
+                 │
+                 ▼
+             VALUE ENGINE
+                 │
+                 ▼
+                ARC
+                 │
+                 ▼
+            KIBS LEDGER
+                 │
+          ┌──────┴──────┐
+          │             │
+       WALLET       MARKETPLACE
+          │             │
+          └──────┬──────┘
+                 ▼
+          REAL SETTLEMENT
+
+
+At this point, you have the foundation for a productive digital asset system.
+
+The next major phase is Phase 2 — AGC issuance. That is where we define the actual mechanism for turning verified productivity into controlled agricultural credits, including:
+> 
+* issuance formula
+* maximum supply
+* production-backed issuance
+* anti-double-counting
+* farmer rewards
+* reserve mechanism
+* credit burning
+* marketplace utility
+* KIBS wallet integration
+
+> That is the layer that answers your original goal: how the Smart Farm itself can become the productive source for generating digital economic credits, rather than requiring conventional hash-rate mining hardware.

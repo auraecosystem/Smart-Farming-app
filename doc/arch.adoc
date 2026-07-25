@@ -1,6 +1,6 @@
 > The important distinction is that you don’t want hash-rate mining. You want productive activity to become the source of digital value.
 
-[I would redesign it as:](Smart Farming → Proof of Agricultural Activity → Verified Yield → Agricultural Value Credits → Digital Economy)
+> [I would redesign it as:](Smart Farming → Proof of Agricultural Activity → Verified Yield → Agricultural Value Credits → Digital Economy)
 
 Next: Phase 2 — implement the KAVP core as a real Python package. This is where we replace the original crop() and msp() functions with a proper domain model.
 
@@ -50,7 +50,7 @@ Value Calculation
 ARC Issuance
 
 Here is the first core implementation:
-
+```python
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
@@ -206,8 +206,137 @@ arc = kavp.issue_arc(
     production_id=production.production_id,
     market_price_per_kg=Decimal("500")
 )
+```
 
-The resulting ARC would represent:
+
+> Good. We can now move to Phase 1 implementation.
+
+I recommend we make the existing Smart Farming application productive in this exact order:
+
+SMART FARMING APP
+        │
+        ▼
+FARM REGISTRY
+        │
+        ▼
+CROP REGISTRY
+        │
+        ▼
+PRODUCTION REGISTRY
+        │
+        ▼
+PoPA VERIFICATION
+        │
+        ▼
+VALUE ENGINE
+        │
+        ▼
+ARC — AGRICULTURAL RECEIPT
+        │
+        ▼
+KIBS LEDGER
+
+The first production-ready feature should be a Productive Activity API.
+
+A farmer submits:
+
+{
+  "farmer_id": "FARMER-001",
+  "farm_id": "FARM-001",
+  "crop_id": "maize",
+  "area_hectares": 2.5,
+  "predicted_yield_kg": 4500
+}
+
+The system creates a production record:
+
+PROD-001
+├── Farmer: FARMER-001
+├── Farm: FARM-001
+├── Crop: Maize
+├── Area: 2.5 hectares
+├── Predicted yield: 4,500 kg
+└── Status: ACTIVE
+
+After harvest:
+
+{
+  "actual_yield_kg": 4300,
+  "quality_grade": "A"
+}
+
+The PoPA engine evaluates the production:
+
+Farm Identity             ✓
+Crop Registration         ✓
+Production Record         ✓
+Yield Plausibility        ✓
+Evidence                  ✓
+Quality                   ✓
+        │
+        ▼
+VERIFIED PRODUCTIVE ACTIVITY
+
+Then the Value Engine calculates the reference economic value:
+
+Verified Output
+      ×
+Verified Market Price
+      ×
+Quality Factor
+      =
+Agricultural Reference Value
+
+The result becomes an ARC:
+
+ARC-001
+├── Production: PROD-001
+├── Crop: Maize
+├── Quantity: 4,300 kg
+├── Quality: Grade A
+├── Origin: FARM-001
+├── Verification: VERIFIED
+└── Status: ACTIVE
+
+Then KIBS records the ownership:
+
+FARMER-001
+      │
+      ▼
+KIBS WALLET
+      │
+      ▼
+ARC-001
+      │
+      ├── Verified production
+      ├── Digital ownership
+      └── Economic reference
+
+At this point, the system has accomplished something important: real agricultural productivity has been transformed into a verifiable digital record.
+
+Only after this is working should we introduce AGC, the productive credit layer:
+
+Verified Production
+        ↓
+ARC
+        ↓
+AGC Eligibility
+        ↓
+Issuance Rules
+        ↓
+AGC Credit
+        ↓
+KIBS Wallet
+        ↓
+Agricultural Marketplace
+
+I would make the next implementation step Phase 1A: create the complete kavp/ Python module, including Crop, Farm, Production, PoPA, ValueEngine, and ARC, and then show exactly where each module plugs into your existing Smart-Farming-app repository.
+
+That will give us the first actual working codebase for the productive economy rather than continuing at the conceptual level.
+
+
+
+> The resulting ARC would represent:
 
 ARC
 ├── Production: PROD-XXXXXXXX

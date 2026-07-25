@@ -831,5 +831,83 @@ def submit_productivity_event():
             "error": str(error)
         }), 500
 
+@app.route(
+    "/api/blockchain",
+    methods=["GET"]
+)
+def get_blockchain():
+
+    chain = (
+        blockchain_service
+        .get_chain()
+    )
+
+    return jsonify({
+        "cod": 200,
+        "length": len(chain),
+        "chain": chain
+    })
 
 
+@app.route(
+    "/api/blockchain/block/<int:index>",
+    methods=["GET"]
+)
+def get_block(index):
+
+    block = (
+        blockchain_service
+        .get_block(index)
+    )
+
+    if block is None:
+
+        return jsonify({
+            "cod": 404,
+            "detail": "Block not found"
+        }), 404
+
+    return jsonify({
+        "cod": 200,
+        "block": block
+    })
+
+
+@app.route(
+    "/api/blockchain/validate",
+    methods=["GET"]
+)
+def validate_blockchain():
+
+    valid = (
+        blockchain_service
+        .validate_chain()
+    )
+
+    return jsonify({
+        "cod": 200,
+        "valid": valid
+    })
+
+@app.route(
+    "/api/rewards/<producer_id>",
+    methods=["GET"]
+)
+def get_productivity_rewards(
+    producer_id
+):
+
+    rewards = (
+        blockchain_service
+        .get_rewards(
+            producer_id
+        )
+    )
+
+    return jsonify({
+        "cod": 200,
+        "producer_id":
+            producer_id,
+        "rewards":
+            rewards
+    })

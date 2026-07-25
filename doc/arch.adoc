@@ -553,7 +553,7 @@ ledger/
 └── wallet.py
 
 The first usable API could be:
-
+```console
 POST /farms
 POST /crops
 POST /production
@@ -562,7 +562,7 @@ GET  /production/{id}
 GET  /production/{id}/valuation
 POST /production/{id}/issue-arc
 GET  /wallet/{farmer_id}
-
+```
 The most important endpoint is:
 
 POST /production/{id}/verify
@@ -721,6 +721,7 @@ _> KUBU AGRICULTURAL VALUE PROTOCOL
 
 The core protocol could be:
 
+```python
 class ProofOfProductiveActivity:
     def register_farm(self, farm):
         """Register a farm in the network."""
@@ -746,9 +747,10 @@ class ProofOfProductiveActivity:
     def issue_credit(self, verified_output):
         """Issue digital credits according to protocol rules."""
         pass
-
+```
 The economic model should not be:
 
+```gyp
 Farm exists
      ↓
 Automatically mint unlimited tokens
@@ -782,8 +784,9 @@ Gross agricultural value calculated
 Protocol issues a corresponding agricultural credit
              ↓
 Credit enters farmer's wallet
+```
 
-The credit should have clearly defined utility. It could be used to pay for services inside the ecosystem, access agricultural financing, purchase farm inputs, pay marketplace fees, or participate in the network. Actual commodity sales can provide the underlying economic revenue.
+> The credit should have clearly defined utility. It could be used to pay for services inside the ecosystem, access agricultural financing, purchase farm inputs, pay marketplace fees, or participate in the network. Actual commodity sales can provide the underlying economic revenue.
 
 I would also separate the system into three assets rather than one token:
 
@@ -1264,7 +1267,7 @@ Farmer interaction
 Agricultural AI
 
 These components feed the protocol:
-
+```jq
 activity = {
     "farmer_id": "FARMER-001",
     "farm_id": "FARM-001",
@@ -1273,7 +1276,7 @@ activity = {
     "season": "2026",
     "predicted_yield_kg": 4500
 }
-
+```
 The system does not immediately issue digital value here.
 
 It first creates a production claim.
@@ -1384,7 +1387,7 @@ KBU ECOSYSTEM
 
 I would evolve the repository toward:
 
->?Smart-Farming-app/
+> ?Smart-Farming-app/
 │
 ├── app/
 │   ├── farmer/
@@ -1624,7 +1627,7 @@ ECONOMIC UTILITY
 After this MVP is working, the next layer is AGC issuance. That is where we can define exactly how verified agricultural productivity generates ecosystem credits, including issuance limits, anti-inflation rules, reserve mechanisms, and how those credits can be used within your Smart Farming and KIBS ecosystem.
 
 > The right build order is therefore:
-
+>
 Phase 1: Productive farm registry
 Phase 2: PoPA verification
 Phase 3: Agricultural valuation
